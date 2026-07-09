@@ -131,6 +131,16 @@ async function startBot() {
     while (isEnabled) {
         try {
             updateStatus("Scanning for new tweets on screen...");
+            
+            // Check for unwanted blocking modals/popups before scanning
+            const blockingModal = document.querySelector('[role="dialog"]');
+            if (blockingModal) {
+                updateStatus("Unwanted popup detected. Resetting to home feed...");
+                await randomDelay(1000, 2000);
+                window.location.href = 'https://x.com/home';
+                return;
+            }
+
             const tweets = Array.from(document.querySelectorAll('article[data-testid="tweet"]:not([data-auto-replied])'));
             
             if (tweets.length === 0) {
@@ -272,18 +282,18 @@ async function startBot() {
                             });
                             
                         } else {
-                            updateStatus(`Error: Send button not found or disabled.`, tweet);
+                            updateStatus(`Error: Send button not found or disabled. Resetting...`, tweet);
                             await randomDelay(3000, 3000);
-                            const closeBtn = document.querySelector('[aria-label="Close"]');
-                            if (closeBtn) simulateClick(closeBtn);
+                            window.location.href = 'https://x.com/home';
+                            return;
                         }
                         
                         updateStatus(`Reply process finished! Cooling down...`, tweet);
                     } else {
-                        updateStatus(`Error: Could not find text box in modal!`, tweet);
-                        await randomDelay(4000, 4000);
-                        const closeBtn = document.querySelector('[aria-label="Close"]');
-                        if (closeBtn) simulateClick(closeBtn);
+                        updateStatus(`Error: Could not find text box in modal! Resetting...`, tweet);
+                        await randomDelay(3000, 3000);
+                        window.location.href = 'https://x.com/home';
+                        return;
                     }
                 } else {
                     updateStatus(`Error: Could not find reply button on tweet!`, tweet);
@@ -295,9 +305,11 @@ async function startBot() {
             }
             
         } catch (error) {
-            updateStatus(`Fatal Error: ${error.message}\nRetrying in 5s...`);
+            updateStatus(`Fatal Error: ${error.message}\nResetting to home feed...`);
             console.error(error);
-            await randomDelay(5000, 10000);
+            await randomDelay(3000, 5000);
+            window.location.href = 'https://x.com/home';
+            return;
         }
     }
     
