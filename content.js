@@ -135,9 +135,9 @@ async function startBot() {
             // Check for unwanted blocking modals/popups before scanning
             const blockingModal = document.querySelector('[role="dialog"]');
             if (blockingModal) {
-                updateStatus("Unwanted popup detected. Resetting to home feed...");
+                updateStatus("Unwanted popup detected. Opening feed in a new tab...");
                 await randomDelay(1000, 2000);
-                window.location.href = 'https://x.com/home';
+                chrome.runtime.sendMessage({ action: 'resetFeed' });
                 return;
             }
 
@@ -282,17 +282,17 @@ async function startBot() {
                             });
                             
                         } else {
-                            updateStatus(`Error: Send button not found or disabled. Resetting...`, tweet);
+                            updateStatus(`Error: Send button not found or disabled. Opening feed in a new tab...`, tweet);
                             await randomDelay(3000, 3000);
-                            window.location.href = 'https://x.com/home';
+                            chrome.runtime.sendMessage({ action: 'resetFeed' });
                             return;
                         }
                         
                         updateStatus(`Reply process finished! Cooling down...`, tweet);
                     } else {
-                        updateStatus(`Error: Could not find text box in modal! Resetting...`, tweet);
+                        updateStatus(`Error: Could not find text box in modal! Opening feed in a new tab...`, tweet);
                         await randomDelay(3000, 3000);
-                        window.location.href = 'https://x.com/home';
+                        chrome.runtime.sendMessage({ action: 'resetFeed' });
                         return;
                     }
                 } else {
@@ -305,10 +305,10 @@ async function startBot() {
             }
             
         } catch (error) {
-            updateStatus(`Fatal Error: ${error.message}\nResetting to home feed...`);
+            updateStatus(`Fatal Error: ${error.message}\nOpening feed in a new tab...`);
             console.error(error);
             await randomDelay(3000, 5000);
-            window.location.href = 'https://x.com/home';
+            chrome.runtime.sendMessage({ action: 'resetFeed' });
             return;
         }
     }

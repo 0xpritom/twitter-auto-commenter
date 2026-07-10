@@ -3,7 +3,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         generateComment(request.text, request.lang)
             .then(reply => sendResponse({ reply }))
             .catch(error => sendResponse({ error: error.message }));
-        return true; 
+    } else if (request.action === 'resetFeed') {
+        chrome.tabs.create({ url: 'https://x.com/home' }, (newTab) => {
+            if (sender.tab && sender.tab.id) {
+                chrome.tabs.remove(sender.tab.id);
+            }
+        });
+        return true;
     }
 });
 
