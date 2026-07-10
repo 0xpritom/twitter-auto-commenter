@@ -141,6 +141,16 @@ async function startBot() {
                 return;
             }
 
+            // Try to find logged-in user
+            let loggedInUserHandle = null;
+            const profileLink = document.querySelector('a[data-testid="AppTabBar_Profile_Link"]');
+            if (profileLink) {
+                const href = profileLink.getAttribute('href');
+                if (href) {
+                    loggedInUserHandle = href.split('?')[0].replace('/', '').toLowerCase();
+                }
+            }
+
             const tweets = Array.from(document.querySelectorAll('article[data-testid="tweet"]:not([data-auto-replied])'));
             
             if (tweets.length === 0) {
@@ -155,12 +165,21 @@ async function startBot() {
                 
                 tweet.setAttribute('data-auto-replied', 'true');
                 
-                // Extract Unique Post URL to prevent duplicate comments across sessions
+                // Extract Unique Post URL and Author Handle
                 const timeLink = tweet.querySelector('a[href*="/status/"]');
                 let postUrl = null;
+                let authorHandle = null;
                 if (timeLink) {
-                    const match = timeLink.href.match(/(\/[^/]+\/status\/\d+)/);
-                    if (match) postUrl = match[1];
+                    const match = timeLink.href.match(/([^/]+)\/status\/(\d+)/);
+                    if (match) {
+                        authorHandle = match[1].toLowerCase();
+                        postUrl = `/${match[1]}/status/${match[2]}`;
+                    }
+                }
+                
+                if (loggedInUserHandle && authorHandle === loggedInUserHandle) {
+                    updateStatus("Skipping: This is my own post.", tweet);
+                    continue; 
                 }
                 
                 if (postUrl && repliedHistory.includes(postUrl)) {
